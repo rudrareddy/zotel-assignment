@@ -10,7 +10,3 @@ A Laravel-based hotel booking engine that handles availability search, dynamic p
 - Composer
 - Node.js & NPM (for frontend assets)
 
-## Admin Loigin Details
-
-- URL: 
-

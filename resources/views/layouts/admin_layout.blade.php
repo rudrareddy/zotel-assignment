@@ -9,7 +9,7 @@
         <meta content="Ecommerce website admin" name="description" />
         <meta content="" name="author" />
         <!-- App favicon -->
-        <link rel="shortcut icon" href="{{asset('admin/assets/images/favicon.ico')}}">
+      
         <!-- datepicker css -->
         <link rel="stylesheet" href="{{asset('admin/assets/libs/flatpickr/flatpickr.min.css')}}">
         <!-- DataTables -->
