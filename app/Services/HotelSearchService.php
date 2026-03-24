@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\RoomType;
+use App\Models\RatePlan;
 use App\Models\Discount;
 use Carbon\Carbon;
 
@@ -13,32 +14,35 @@ class HotelSearchService
         $checkIn = Carbon::parse($request->check_in);
         $checkOut = Carbon::parse($request->check_out);
         $guests = (int) $request->guests;
-        $mealPlanCode = $request->meal_plan;
+        $ratePlanCode = $request->rate_plan ?? null;
         
         $totalNights = $checkIn->diffInDays($checkOut);
         
         if ($totalNights <= 0) {
             return ['error' => 'Invalid date range'];
         }
+
+        // Get all active room types
         $roomTypes = RoomType::with(['inventory' => function($query) use ($checkIn, $checkOut) {
             $query->whereBetween('date', [$checkIn, $checkOut->copy()->subDay()])
                   ->orderBy('date');
-        }])->get();
-       // return $roomTypes;
+        }, 'availableRatePlans'])->get();
 
         $availableRooms = [];
 
         foreach ($roomTypes as $roomType) {
+            // Check if room can accommodate guests
             if (!$roomType->canAccommodate($guests)) {
                 continue;
             }
 
+            // Check inventory exists for all nights
             $inventoryRecords = $roomType->inventory;
-            //return $inventoryRecords;
             if (count($inventoryRecords) < $totalNights) {
                 continue;
             }
 
+            // Check availability for all nights
             $isAvailable = true;
             foreach ($inventoryRecords as $inventory) {
                 if (!$inventory->is_available || $inventory->available_rooms <= 0) {
@@ -51,62 +55,68 @@ class HotelSearchService
                 continue;
             }
 
-            $priceData = $roomType->getPriceForDates($checkIn, $checkOut, $guests, $mealPlanCode);
+            // Get available rate plans for this room type
+            $availableRatePlans = $roomType->availableRatePlans;
             
-            if (!$priceData) {
-                continue;
+            // If specific rate plan requested, filter
+            if ($ratePlanCode) {
+                $availableRatePlans = $availableRatePlans->filter(function($plan) use ($ratePlanCode) {
+                    return $plan->code === $ratePlanCode;
+                });
             }
 
-            $discountCalculation = Discount::calculateDiscounts(
-                $checkIn, 
-                $checkOut, 
-                $totalNights, 
-                $priceData['total_price']
-            );
-
-            $mealPlanDetails = null;
-            if ($mealPlanCode) {
-                $mealPlan = $roomType->mealPlans()->where('code', $mealPlanCode)->first();
-                if ($mealPlan) {
-                    $mealPlanDetails = [
-                        'code' => $mealPlan->code,
-                        'name' => $mealPlan->name,
-                        'price_per_person' => $mealPlan->pivot->price_per_person,
-                        'total_price' => $mealPlan->pivot->price_per_person * $guests * $totalNights
-                    ];
+            foreach ($availableRatePlans as $ratePlan) {
+                // Calculate price with this rate plan
+                $priceData = $roomType->getPriceForDates($checkIn, $checkOut, $guests, $ratePlan);
+                
+                if (!$priceData) {
+                    continue;
                 }
-            }
 
-            $roomCharges = collect($priceData['daily_breakdown'])->sum('base_price');
-            $extraGuestCharges = collect($priceData['daily_breakdown'])->sum(function($day) {
-                return $day['nightly_total'] - $day['base_price'];
-            });
+                // Apply discounts
+                $discountCalculation = Discount::calculateDiscounts(
+                    $checkIn, 
+                    $checkOut, 
+                    $totalNights, 
+                    $priceData['total_price'],
+                    $ratePlan->id,
+                    $roomType->id
+                );
 
-            $availableRooms[] = [
-                'room_type' => [
-                    'id' => $roomType->id,
-                    'name' => $roomType->name,
-                    'max_adults' => $roomType->max_adults,
-                    'description' => $roomType->description
-                ],
-                'total_nights' => $totalNights,
-                'guest_count' => $guests,
-                'daily_breakdown' => $priceData['daily_breakdown'],
-                'meal_plan' => $mealPlanDetails,
-                'pricing' => [
-                    'base_price' => $priceData['total_price'],
-                    'price_breakdown' => [
-                        'room_charges' => $roomCharges,
-                        'room_price'=>$roomCharges+$extraGuestCharges,
-                        'extra_guest_charges' => $extraGuestCharges,
-                        'meal_plan_charges' => $mealPlanDetails['total_price'] ?? 0
+                $availableRooms[] = [
+                    'room_type' => [
+                        'id' => $roomType->id,
+                        'name' => $roomType->name,
+                        'max_adults' => $roomType->max_adults,
+                        'description' => $roomType->description
                     ],
-                    'discounts' => $discountCalculation['applied_discounts'],
-                    'total_discount' => $discountCalculation['total_discount'],
-                    'final_price' => $discountCalculation['final_price']
-                ],
-                'status' => 'available'
-            ];
+                    'rate_plan' => [
+                        'id' => $ratePlan->id,
+                        'name' => $ratePlan->name,
+                        'code' => $ratePlan->code,
+                        'meal_type' => $ratePlan->meal_type,
+                        'description' => $ratePlan->description,
+                        'base_price_multiplier' => $ratePlan->pivot->base_price_multiplier,
+                        'meal_price_per_person' => $ratePlan->pivot->meal_price_per_person
+                    ],
+                    'total_nights' => $totalNights,
+                    'guest_count' => $guests,
+                    'daily_breakdown' => $priceData['daily_breakdown'],
+                    'pricing' => [
+                        'base_room_price' => collect($priceData['daily_breakdown'])->sum('base_price'),
+                        'rate_plan_adjustment' => collect($priceData['daily_breakdown'])->sum(function($day) {
+                            return $day['base_price_with_multiplier'] - $day['base_price'];
+                        }),
+                        'extra_adult_charges' => collect($priceData['daily_breakdown'])->sum('extra_adult_charge'),
+                        'meal_charges' => collect($priceData['daily_breakdown'])->sum('meal_charge'),
+                        'subtotal' => $priceData['total_price'],
+                        'discounts' => $discountCalculation['applied_discounts'],
+                        'total_discount' => $discountCalculation['total_discount'],
+                        'final_price' => $discountCalculation['final_price']
+                    ],
+                    'status' => 'available'
+                ];
+            }
         }
 
         return [
@@ -114,7 +124,6 @@ class HotelSearchService
                 'check_in' => $checkIn->format('Y-m-d'),
                 'check_out' => $checkOut->format('Y-m-d'),
                 'guests' => $guests,
-                'meal_plan' => $mealPlanCode,
                 'nights' => $totalNights
             ],
             'available_rooms' => $availableRooms,

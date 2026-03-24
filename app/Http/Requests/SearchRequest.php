@@ -27,7 +27,7 @@ class SearchRequest extends FormRequest
             'check_in' => 'required|date|after_or_equal:today',
             'check_out' => 'required|date|after:check_in',
             'guests' => 'required|integer|min:1|max:3',
-            'meal_plan' => 'required|in:RO,BB'
+            'rate_plan' => 'required|in:EP,CP,MAP'
         ];
     }
 
@@ -36,8 +36,8 @@ class SearchRequest extends FormRequest
         return [
             'check_in.after_or_equal' => 'Check-in date cannot be in the past',
             'check_out.after' => 'Check-out date must be after check-in date',
-            'guests.max' => 'Maximum 3 guests allowed per room',
-            'meal_plan.in' => 'Invalid meal plan selection'
+            'guests.max' => 'Maximum 4 guests allowed per room',
+            'rate_plan.in' => 'Invalid rate plan selection'
         ];
     }
 

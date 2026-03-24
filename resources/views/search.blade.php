@@ -17,80 +17,68 @@
         
         <!-- Search Form -->
         <div class="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-100">
-            <form id="searchForm" class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <div class="md:col-span-1">
+            <form id="searchForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">
                         <i class="fas fa-calendar-check mr-2 text-blue-500"></i>Check-in
                     </label>
                     <input type="date" name="check_in" id="check_in" 
-                           class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500"
                            required>
                 </div>
-                <div class="md:col-span-1">
+                <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">
                         <i class="fas fa-calendar-times mr-2 text-blue-500"></i>Check-out
                     </label>
                     <input type="date" name="check_out" id="check_out" 
-                           class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500"
                            required>
                 </div>
-                <div class="md:col-span-1">
+                <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">
                         <i class="fas fa-users mr-2 text-blue-500"></i>Guests
                     </label>
                     <select name="guests" id="guests" 
-                            class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500"
                             required>
-                        <option value="1">1 Guest</option>
-                        <option value="2" selected>2 Guests</option>
-                        <option value="3">3 Guests</option>
-                         <option value="4">4 Guests</option>
+                        <option value="1">1 Adult</option>
+                        <option value="2" selected>2 Adults</option>
+                        <option value="3">3 Adults</option>
+                        <option value="4">4 Adults</option>
                     </select>
                 </div>
-                <div class="md:col-span-1">
+                <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">
-                        <i class="fas fa-utensils mr-2 text-blue-500"></i>Meal Plan
+                        <i class="fas fa-tag mr-2 text-blue-500"></i>Rate Plan
                     </label>
-                    <select name="meal_plan" id="meal_plan" 
-                            class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            required>
-                        <option value="RO">Room Only</option>
-                        <option value="BB">Breakfast Included</option>
-                        
+                    <select name="rate_plan" id="rate_plan" 
+                            class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500">
+                       
+                        <option value="EP">EP - Room Only</option>
+                        <option value="CP">CP - Breakfast Included</option>
+                        <option value="MAP">MAP - All Meals Included</option>
                     </select>
                 </div>
-                <div class="md:col-span-1 flex items-end">
+                <div class="md:col-span-4">
                     <button type="submit" 
-                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2">
-                        <i class="fas fa-search"></i>
-                        Search Rooms
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200">
+                        <i class="fas fa-search mr-2"></i>Search Rooms
                     </button>
                 </div>
             </form>
         </div>
 
-        <!-- Loading Indicator -->
+        <!-- Loading & Error States -->
         <div id="loading" class="hidden text-center py-12">
             <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
-            <p class="mt-4 text-gray-600 text-lg">Searching for available rooms...</p>
+            <p class="mt-4 text-gray-600">Searching for available rooms...</p>
         </div>
 
-        <!-- Error Message -->
-        <div id="error" class="hidden bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-lg mb-6">
-        </div>
+        <div id="error" class="hidden bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-lg mb-6"></div>
 
-        <!-- Results Container -->
+        <!-- Results -->
         <div id="results" class="hidden">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-gray-800">
-                    <i class="fas fa-hotel mr-2 text-blue-600"></i>
-                    Available Rooms
-                </h2>
-                <div id="searchSummary" class="text-gray-600 bg-blue-50 px-4 py-2 rounded-lg">
-                </div>
-            </div>
-            <div id="roomList" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            </div>
+            <div id="roomList" class="space-y-6"></div>
         </div>
     </div>
 
@@ -98,7 +86,6 @@
         document.getElementById('searchForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // Set min date to today
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('check_in').min = today;
             
@@ -106,14 +93,12 @@
                 check_in: document.getElementById('check_in').value,
                 check_out: document.getElementById('check_out').value,
                 guests: document.getElementById('guests').value,
-                meal_plan: document.getElementById('meal_plan').value
+                rate_plan: document.getElementById('rate_plan').value
             };
 
-            // Show loading, hide results and error
             document.getElementById('loading').classList.remove('hidden');
             document.getElementById('results').classList.add('hidden');
             document.getElementById('error').classList.add('hidden');
-            document.getElementById('roomList').innerHTML = '';
 
             try {
                 const params = new URLSearchParams(formData);
@@ -125,108 +110,120 @@
                 if (data.success) {
                     displayResults(data.data);
                 } else {
-                    console.log(data);
-                    if (data.status === false) {
-                        Object.keys(data.data).forEach(field => {
-                            if (Array.isArray(data.data[field])) {
-                                showError(data.data[field][0]);
-                            }
-                        });
+                    if(data.status == false){
+                        const errors = data.data || {};
+
+                            let message = 
+                                errors.check_out || 
+                                errors.rate_plan || 
+                                errors.guests ||
+                                'An error occurred';
+
+                            showError(message);
                     }
                     
                 }
             } catch (error) {
                 document.getElementById('loading').classList.add('hidden');
-                showError('Failed to fetch results. Please check your connection and try again.');
-                console.error('Search error:', error);
+                showError('Failed to fetch results. Please try again.');
             }
         });
 
         function displayResults(data) {
-            const resultsDiv = document.getElementById('results');
             const roomList = document.getElementById('roomList');
-            const searchSummary = document.getElementById('searchSummary');
-            
-            // Update search summary
-            searchSummary.innerHTML = `
-                <i class="fas fa-calendar-alt mr-2"></i>
-                ${data.search_criteria.check_in} to ${data.search_criteria.check_out} 
-                | ${data.search_criteria.nights} nights 
-                | ${data.search_criteria.guests} guest(s)
-                | ${data.search_criteria.meal_plan === 'BB' ? 'Breakfast Included' : 'Room Only'}
-            `;
-            
             roomList.innerHTML = '';
             
             if (data.available_rooms.length === 0) {
                 roomList.innerHTML = `
-                    <div class="col-span-2 text-center py-12 bg-white rounded-lg shadow">
+                    <div class="text-center py-12 bg-white rounded-lg shadow">
                         <i class="fas fa-bed text-gray-400 text-5xl mb-4"></i>
-                        <p class="text-gray-600 text-lg">No rooms available for selected criteria</p>
-                        <p class="text-gray-500 mt-2">Try different dates or guest count</p>
+                        <p class="text-gray-600">No rooms available for selected criteria</p>
                     </div>
                 `;
             } else {
                 data.available_rooms.forEach(room => {
-                    const roomCard = createRoomCard(room);
-                    roomList.appendChild(roomCard);
+                    roomList.appendChild(createRoomCard(room));
                 });
             }
             
-            resultsDiv.classList.remove('hidden');
+            document.getElementById('results').classList.remove('hidden');
         }
 
         function createRoomCard(room) {
             const card = document.createElement('div');
-            card.className = 'bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300 border border-gray-100';
+            card.className = 'bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition';
+            
+            const ratePlanBadgeColor = {
+                'EP': 'bg-gray-100 text-gray-700',
+                'CP': 'bg-green-100 text-green-700',
+                'MAP': 'bg-purple-100 text-purple-700'
+            }[room.rate_plan.meal_type] || 'bg-blue-100 text-blue-700';
             
             const discountHtml = room.pricing.discounts.length > 0 ? `
-                <div class="bg-green-50 p-4 border-t border-green-100">
+                <div class="bg-green-50 p-4 rounded-lg mt-4">
                     <p class="text-green-700 font-medium mb-2 flex items-center">
-                        <i class="fas fa-tag mr-2"></i>
-                        Discounts Applied:
+                        <i class="fas fa-tag mr-2"></i>Discounts Applied:
                     </p>
                     ${room.pricing.discounts.map(d => `
-                        <div class="flex justify-between text-sm text-green-600 mb-1">
+                        <div class="flex justify-between text-sm">
                             <span>${d.name}</span>
-                            <span class="font-semibold">-Rs.${d.amount}</span>
+                            <span class="font-semibold text-green-600">-${d.percentage}% (Rs.${d.amount})</span>
                         </div>
                     `).join('')}
-                </div>
-            ` : '';
-            
-            const mealPlanHtml = room.meal_plan ? `
-                <div class="flex justify-between text-sm text-gray-600 mb-1">
-                    <span>${room.meal_plan.name} (${room.guest_count} guests × ${room.total_nights} nights):</span>
-                    <span class="font-semibold">Rs.${room.meal_plan.total_price}</span>
+                    <div class="border-t border-green-200 mt-2 pt-2 flex justify-between font-semibold">
+                        <span>Total Discount:</span>
+                        <span class="text-green-600">-Rs.${room.pricing.total_discount}</span>
+                    </div>
                 </div>
             ` : '';
             
             card.innerHTML = `
                 <div class="p-6">
                     <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h3 class="text-xl font-bold text-gray-800">${room.room_type.name}</h3>
-                            <p class="text-gray-600 text-sm mt-1">${room.room_type.description}</p>
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <h3 class="text-2xl font-bold text-gray-800">${room.room_type.name}</h3>
+                                <span class="px-3 py-1 rounded-full text-sm font-semibold ${ratePlanBadgeColor}">
+                                    ${room.rate_plan.name} (${room.rate_plan.meal_type})
+                                </span>
+                            </div>
+                            <p class="text-gray-600">${room.room_type.description}</p>
+                            <div class="flex gap-4 mt-2 text-sm">
+                                <span class="text-gray-500"><i class="fas fa-user-friends mr-1"></i>Max ${room.room_type.max_adults} adults</span>
+                                <span class="text-gray-500"><i class="fas fa-utensils mr-1"></i>${room.rate_plan.description}</span>
+                            </div>
                         </div>
-                        <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">
-                            Max ${room.room_type.max_adults} guests
-                        </span>
                     </div>
                     
-                    <div class="border-t border-b border-gray-100 py-4 mb-4">
-                        <div class="flex justify-between text-sm text-gray-600 mb-2">
-                            <span>Room charges (${room.total_nights} nights):</span>
-                            <span class="font-semibold">Rs.${room.pricing.price_breakdown.room_charges}</span>
-                        </div>
-                        <div class="flex justify-between text-sm text-gray-600 mb-2">
-                            <span>Extra guest charges:</span>
-                            <span class="font-semibold">Rs.${room.pricing.price_breakdown.extra_guest_charges}</span>
-                        </div>
-                        ${mealPlanHtml}
-                        <div class="flex justify-between text-sm font-medium text-gray-700 mt-2 pt-2 border-t border-gray-100">
-                            <span>Subtotal:</span>
-                            <span>Rs.${room.pricing.base_price}</span>
+                    <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                        <h4 class="font-semibold text-gray-700 mb-2">Price Breakdown (${room.total_nights} nights)</h4>
+                        <div class="space-y-1 text-sm">
+                            <div class="flex justify-between">
+                                <span>Base Room Price:</span>
+                                <span>Rs.${room.pricing.base_room_price}</span>
+                            </div>
+                            ${room.pricing.rate_plan_adjustment !== 0 ? `
+                            <div class="flex justify-between text-blue-600">
+                                <span>Rate Plan Adjustment (${room.rate_plan.base_price_multiplier}x):</span>
+                                <span>+Rs.${room.pricing.rate_plan_adjustment}</span>
+                            </div>
+                            ` : ''}
+                            ${room.pricing.extra_adult_charges > 0 ? `
+                            <div class="flex justify-between">
+                                <span>Extra Adult Charges:</span>
+                                <span>+Rs.${room.pricing.extra_adult_charges}</span>
+                            </div>
+                            ` : ''}
+                            ${room.pricing.meal_charges > 0 ? `
+                            <div class="flex justify-between">
+                                <span>Meal Charges (${room.guest_count} guests):</span>
+                                <span>+Rs.${room.pricing.meal_charges}</span>
+                            </div>
+                            ` : ''}
+                            <div class="border-t border-gray-300 pt-2 mt-2 flex justify-between font-semibold">
+                                <span>Subtotal:</span>
+                                <span>Rs.${room.pricing.subtotal}</span>
+                            </div>
                         </div>
                     </div>
                     
@@ -235,16 +232,14 @@
                     <div class="mt-4 flex justify-between items-center">
                         <div>
                             <p class="text-sm text-gray-500">Final Price</p>
-                            <p class="text-2xl font-bold text-blue-600">Rs.${room.pricing.final_price}</p>
+                            <p class="text-3xl font-bold text-blue-600">Rs.${room.pricing.final_price}</p>
+                            ${room.pricing.total_discount > 0 ? `
+                            <p class="text-sm text-green-600">You save Rs.${room.pricing.total_discount}</p>
+                            ` : ''}
                         </div>
-                        <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition duration-200">
+                        <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition">
                             Select Room
                         </button>
-                    </div>
-                    
-                    <div class="mt-4 text-xs text-gray-400 flex items-center">
-                        <i class="fas fa-check-circle text-green-500 mr-1"></i>
-                        Instant confirmation
                     </div>
                 </div>
             `;
@@ -252,43 +247,18 @@
             return card;
         }
 
-        let errorTimeout;
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle mr-2"></i>${message}`;
+            errorDiv.classList.remove('hidden');
+            setTimeout(() => errorDiv.classList.add('hidden'), 5000);
+        }
 
-function showError(message) {
-    const errorDiv = document.getElementById('error');
-
-    // Clear previous timeout (important)
-    if (errorTimeout) {
-        clearTimeout(errorTimeout);
-    }
-
-    // Support multiple messages
-    if (Array.isArray(message)) {
-        errorDiv.innerHTML = message.map(msg => 
-            `<div><i class="fas fa-exclamation-triangle mr-2"></i>${msg}</div>`
-        ).join('');
-    } else {
-        errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle mr-2"></i>${message}`;
-    }
-
-    // Show error
-    errorDiv.classList.remove('hidden');
-    errorDiv.classList.add('opacity-100');
-
-    // Auto-hide after 5 seconds
-    errorTimeout = setTimeout(() => {
-        errorDiv.classList.add('hidden');
-        errorDiv.classList.remove('opacity-100');
-    }, 5000);
-}
-
-        // Set default dates (today and tomorrow)
+        // Set default dates
         window.addEventListener('load', () => {
             const today = new Date();
             const tomorrow = new Date(today);
             tomorrow.setDate(tomorrow.getDate() + 1);
-            const nextWeek = new Date(today);
-            nextWeek.setDate(nextWeek.getDate() + 7);
             
             document.getElementById('check_in').value = today.toISOString().split('T')[0];
             document.getElementById('check_out').value = tomorrow.toISOString().split('T')[0];

@@ -28,12 +28,24 @@ class RoomType extends Model
                     ->withTimestamps();
     }
 
+    public function ratePlans(): BelongsToMany
+    {
+        return $this->belongsToMany(RatePlan::class, 'room_type_rate_plans')
+                    ->withPivot('base_price_multiplier', 'meal_price_per_person', 'is_available')
+                    ->withTimestamps();
+    }
+
+    public function availableRatePlans()
+    {
+        return $this->ratePlans()->wherePivot('is_available', true);
+    }
+
     public function canAccommodate(int $guestCount): bool
     {
         return $guestCount <= $this->max_adults;
     }
 
-    public function getPriceForDates($checkIn, $checkOut, int $guestCount, ?string $mealPlanCode = null)
+        public function getPriceForDates($checkIn, $checkOut, int $guestCount, RatePlan $ratePlan)
     {
         $inventory = $this->inventory()
             ->whereBetween('date', [$checkIn, $checkOut->copy()->subDay()])
@@ -48,25 +60,31 @@ class RoomType extends Model
         $dailyBreakdown = [];
 
         foreach ($inventory as $item) {
-            $nightlyPrice = $item->calculatePriceForGuests($guestCount);
+            // Calculate base price with rate plan multiplier
+            $nightlyBasePrice = $item->base_price * $ratePlan->pivot->base_price_multiplier;
             
-            if ($mealPlanCode) {
-                $mealPlan = $this->mealPlans()->where('code', $mealPlanCode)->first();
-                if ($mealPlan) {
-                    $nightlyPrice += ($mealPlan->pivot->price_per_person * $guestCount);
-                }
-            }
+            // Calculate extra adult charges
+            $extraAdults = max(0, $guestCount - $item->base_occupancy);
+            $nightlyExtraAdultPrice = $extraAdults * $item->extra_adult_price;
+            
+            // Calculate meal charges
+            $nightlyMealPrice = $ratePlan->pivot->meal_price_per_person * $guestCount;
+            
+            $nightlyTotal = $nightlyBasePrice + $nightlyExtraAdultPrice + $nightlyMealPrice;
 
             $dailyBreakdown[] = [
                 'date' => $item->date->format('Y-m-d'),
                 'base_price' => $item->base_price,
-                'extra_guest_price' => $item->extra_guest_price,
-                'guest_count' => $guestCount,
-                'nightly_total' => $nightlyPrice,
+                'rate_plan_multiplier' => $ratePlan->pivot->base_price_multiplier,
+                'base_price_with_multiplier' => $nightlyBasePrice,
+                'extra_adults' => $extraAdults,
+                'extra_adult_charge' => $nightlyExtraAdultPrice,
+                'meal_charge' => $nightlyMealPrice,
+                'nightly_total' => $nightlyTotal,
                 'available_rooms' => $item->available_rooms
             ];
 
-            $totalPrice += $nightlyPrice;
+            $totalPrice += $nightlyTotal;
         }
 
         return [
