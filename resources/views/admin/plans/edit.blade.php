@@ -9,7 +9,7 @@
                 <div class="page-title-box d-sm-flex align-items-center justify-content-between">
                     <ol class="breadcrumb m-0">
                         <li class="breadcrumb-item"><a href="javascript: void(0);">Rate Plans</a></li>
-                        <li class="breadcrumb-item active">Edit Rate for {{ $rate->name }}</li>
+                        <li class="breadcrumb-item active">Edit Rate for {{ $ratePlan->name }}</li>
                     </ol>
 
                     <!--<div class="page-title-right">
@@ -25,7 +25,7 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <form action="{{ url('admin/rate-plans/' . $rate->id) }}" method="POST"
+                        <form action="{{ url('admin/rate-plans/' . $ratePlan->id) }}" method="POST"
                             enctype="multipart/form-data">
                             @csrf
                             {{ method_field('PATCH') }}
@@ -34,7 +34,7 @@
                                     <div class="mb-3">
                                         <label class="form-label" for="formrow-email-input">Name</label>
                                         <input type="text" class="form-control" name="name"
-                                            id="formrow-password-input" value="{{ $rate->name }}">
+                                            id="formrow-password-input" value="{{ $ratePlan->name }}">
                                         @if ($errors->has('name'))
                                             <span class="help-block">
                                                 <strong style="color: red;">{{ $errors->first('name') }}</strong>
@@ -46,11 +46,11 @@
                                     <div class="mb-3">
                                         <label class="form-label" for="formrow-password-input">Meal Type</label>
                                         <select name="meal_type" class="form-control" disabled>
-                                            <option value="EP" @if ($rate->meal_type == 'EP') selected @endif>EP
+                                            <option value="EP" @if ($ratePlan->meal_type == 'EP') selected @endif>EP
                                             </option>
-                                            <option value="CP" @if ($rate->meal_type == 'CP') selected @endif>CP
+                                            <option value="CP" @if ($ratePlan->meal_type == 'CP') selected @endif>CP
                                             </option>
-                                            <option value="MAP" @if ($rate->meal_type == 'MAP') selected @endif>MAP
+                                            <option value="MAP" @if ($ratePlan->meal_type == 'MAP') selected @endif>MAP
                                             </option>
                                         </select>
                                         @if ($errors->has('max_adults'))
@@ -64,7 +64,7 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label" for="formrow-password-input">Description</label>
-                                        <textarea name="description" class="form-control" id="">{{ $rate->description }}</textarea>
+                                        <textarea name="description" class="form-control" id="">{{ $ratePlan->description }}</textarea>
                                         @if ($errors->has('description'))
                                             <span class="help-block">
                                                 <strong style="color: red;">{{ $errors->first('description') }}</strong>
@@ -78,13 +78,13 @@
                                         <label class="form-label">Status <span class="text-danger"> *</span></label>
                                         <div class="form-check3">
                                             <input class="form-check-input" type="radio" name="is_active" value="1"
-                                                id="formRadios1" @if ($rate->is_active == true) checked @endif>
+                                                id="formRadios1" @if ($ratePlan->is_active == true) checked @endif>
                                             <label class="form-check-label me-1" for="formRadios1">
                                                 Active
                                             </label>
 
                                             <input class="form-check-input" type="radio" name="is_active" id="formRadios2"
-                                                value="0" @if ($rate->is_active == false) checked @endif>
+                                                value="0" @if ($ratePlan->is_active == false) checked @endif>
                                             <label class="form-check-label" for="formRadios2">
                                                 In-active
                                             </label>

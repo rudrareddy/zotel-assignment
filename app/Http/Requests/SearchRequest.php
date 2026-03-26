@@ -26,7 +26,7 @@ class SearchRequest extends FormRequest
         return [
             'check_in' => 'required|date|after_or_equal:today',
             'check_out' => 'required|date|after:check_in',
-            'guests' => 'required|integer|min:1|max:3',
+            'guests' => 'required|integer|min:1|max:4',
             'rate_plan' => 'nullable|in:EP,CP,MAP'
         ];
     }

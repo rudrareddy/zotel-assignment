@@ -59,6 +59,7 @@ class RatePlanController extends Controller
     {
         // Eager load relationships
         $ratePlan->load('roomTypes');
+        //return $ratePlan;
 
         return view('admin.plans.edit', compact('ratePlan'));
     }
