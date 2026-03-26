@@ -56,12 +56,12 @@
                                         <div class="row rate-plan-fields" id="plan-fields-{{ $plan->id }}"
                                             style="{{ $attached ? 'display:flex;' : 'display:none;' }}">
 
-                                            <div class="col-md-4">
+                                            <!--<div class="col-md-4">
                                                 <label>Base Price Multiplier</label>
                                                 <input type="number" step="0.01" class="form-control"
                                                     name="rate_plans[{{ $plan->id }}][base_price_multiplier]"
                                                     value="{{ $attached->pivot->base_price_multiplier ?? '' }}">
-                                            </div>
+                                            </div>-->
 
                                             <div class="col-md-4">
                                                 <label>Meal Price / Person</label>

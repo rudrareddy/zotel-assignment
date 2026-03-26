@@ -61,7 +61,7 @@ class RoomType extends Model
 
         foreach ($inventory as $item) {
             // Calculate base price with rate plan multiplier
-            $nightlyBasePrice = $item->base_price * $ratePlan->pivot->base_price_multiplier;
+            $nightlyBasePrice = $item->base_price;
             
             // Calculate extra adult charges
             $extraAdults = max(0, $guestCount - $item->base_occupancy);
