@@ -53,7 +53,7 @@
                     </label>
                     <select name="rate_plan" id="rate_plan" 
                             class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500">
-                       
+                        <option value="">All</option>
                         <option value="EP">EP - Room Only</option>
                         <option value="CP">CP - Breakfast Included</option>
                         <option value="MAP">MAP - All Meals Included</option>
