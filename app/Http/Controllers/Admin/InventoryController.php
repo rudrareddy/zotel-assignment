@@ -7,7 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\RoomType;
 use App\Http\Requests\InventoryRequest;
 use App\Services\InventoryService;
-
+use App\Models\RoomInventory;
+use Illuminate\Support\Arr;
 class InventoryController extends Controller
 {
     protected InventoryService $service;
@@ -50,5 +51,19 @@ class InventoryController extends Controller
 
         return redirect("admin/inventory/{$roomType->slug}")
             ->with('success', 'Inventory created successfully.');
+    }
+
+    public function edit(RoomInventory $inventory){
+         $inventory->load('roomType:id,name,slug');
+        return view('admin.inventory.edit',compact('inventory'));
+    }
+
+    public function update(Request $request, RoomInventory $inventory){
+        $data = Arr::except($request->all(),['_token','_method']);
+        $update = $inventory->update($data);
+        $roomType = RoomType::findOrFail($request->room_type_id);
+
+        return redirect("admin/inventory/{$roomType->slug}")
+            ->with('success', 'Inventory updated successfully.');
     }
 }

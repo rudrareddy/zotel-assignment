@@ -47,5 +47,12 @@ Route::group(['prefix' =>'admin','middleware'=>['role:admin','auth']],function($
     Route::get('inventory/{slug}',[InventoryController::class,'index']);
     Route::get('inventory/{slug}/create',[InventoryController::class,'create']);
     Route::post('inventory/store',[InventoryController::class,'store']);
+    Route::get('inventory/{inventory}/edit', [InventoryController::class, 'edit'])
+    ->missing(function () {
+        return redirect()
+            ->back()
+            ->with('error', 'Inventory not found.');
+    });
+    Route::patch('inventory/update/{inventory}',[InventoryController::class,'update']);
 });
 

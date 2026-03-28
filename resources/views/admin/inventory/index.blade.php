@@ -95,7 +95,7 @@
                                             <ul class="dropdown-menu">
                                                 <li>
                                                     <a class="dropdown-item"
-                                                       href="{{ url('admin/inventory/'.$room_type->slug.'/'.$date->id.'/edit') }}">
+                                                       href="{{ url('admin/inventory/'.$date->id.'/edit') }}">
                                                         <i class="fa fa-edit"></i> Edit
                                                     </a>
                                                 </li>
